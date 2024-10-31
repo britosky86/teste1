@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">  <!-- Define o destino padrão para todos os links e formulários na página -->
+    <style>
+        body {
+            font-family: Arial, sans-serif; // Define a fonte padrão para o corpo da página
+            margin: 20px; // Define uma margem de 20px ao redor do corpo da página
+        }
+        h1 {
+            color: #4CAF50; // Define a cor do texto do título
+            display: inline-block; // Faz o título ocupar espaço em linha
+        }
+        label {
+            margin-top: 10px; // Adiciona uma margem superior de 10px às labels
+            font-weight: bold; // Define o peso da fonte como negrito
+            display: block; // Garante que a label fique em um bloco separado
+        }
+        input {
+            margin-top: 5px; // Adiciona uma margem superior de 5px aos inputs
+            padding: 10px; // Adiciona um padding de 10px aos inputs
+            font-size: 16px; // Define o tamanho da fonte dos inputs
+            border: 1px solid #ccc; // Define uma borda de 1px sólida e cinza claro
+            border-radius: 5px; // Define bordas arredondadas com raio de 5px
+            width: 100%; // Define a largura dos inputs para 100% do contêiner
+            box-sizing: border-box; // Inclui padding e borda na largura total do elemento
+        }
+        .button-container {
+            display: flex; // Define um contêiner flexível para os botões
+            gap: 10px; // Define um espaçamento de 10px entre os botões
+        }
+        button {
+            padding: 10px; // Adiciona um padding de 10px aos botões
+            font-size: 16px; // Define o tamanho da fonte dos botões
+            border: none; // Remove a borda dos botões
+            border-radius: 5px; // Define bordas arredondadas com raio de 5px
+            cursor: pointer; // Define o cursor como ponteiro ao passar sobre os botões
+            background-color: #4CAF50; // Define a cor de fundo dos botões
+            color: white; // Define a cor do texto dos botões como branco
+            flex: 1; // Faz os botões ocuparem o mesmo espaço disponível
+        }
+        button:hover {
+            background-color: #45a049; // Muda a cor de fundo dos botões ao passar o mouse
+        }
+        .back-button {
+            padding: 8px 16px; // Adiciona padding específico ao botão de voltar
+            font-size: 14px; // Define o tamanho da fonte do botão de voltar
+            background-color: #4CAF50; // Define a cor de fundo do botão de voltar
+            color: white; // Define a cor do texto do botão de voltar como branco
+            border: none; // Remove a borda do botão de voltar
+            border-radius: 5px; // Define bordas arredondadas com raio de 5px
+            cursor: pointer; // Define o cursor como ponteiro ao passar sobre o botão de voltar
+            margin-left: 10px; // Adiciona uma margem à esquerda do botão de voltar
+            vertical-align: middle; // Alinha o botão verticalmente com o título
+        }
+        .email-table {
+            width: 100%; // Define a largura da tabela de emails para 100% do contêiner
+            border-collapse: collapse; // Remove os espaços entre as bordas das células
+            margin-top: 10px; // Adiciona uma margem superior de 10px à tabela de emails
+        }
+        .email-table th, .email-table td {
+            border: 1px solid #ccc; // Define uma borda de 1px sólida e cinza claro para células
+            padding: 10px; // Adiciona um padding de 10px às células
+            text-align: left; // Alinha o texto das células à esquerda
+        }
+        .email-table th {
+            background-color: #f2f2f2; // Define a cor de fundo das células de cabeçalho
+        }
+        .remove-button {
+            padding: 10px; // Adiciona um padding de 10px ao botão de remover
+            font-size: 16px; // Define o tamanho da fonte do botão de remover
+            background-color: #f44336; // Define a cor de fundo do botão de remover
+            color: white; // Define a cor do texto do botão de remover como branco
+            border: none; // Remove a borda do botão de remover
+            border-radius: 5px; // Define bordas arredondadas com raio de 5px
+            cursor: pointer; // Define o cursor como ponteiro ao passar sobre o botão de remover
+            width: 100px; // Define a largura do botão de remover
+        }
+        .send-report-button {
+            padding: 10px; // Adiciona um padding de 10px ao botão de enviar relatório
+            font-size: 16px; // Define o tamanho da fonte do botão de enviar relatório
+            border: none; // Remove a borda do botão de enviar relatório
+            border-radius: 5px; // Define bordas arredondadas com raio de 5px
+            cursor: pointer; // Define o cursor como ponteiro ao passar sobre o botão de enviar relatório
+            background-color: #4CAF50; // Define a cor de fundo do botão de enviar relatório
+            color: white; // Define a cor do texto do botão de enviar relatório como branco
+            width: 100%; // Define a largura do botão de enviar relatório para 100% do contêiner
+            margin-top: 10px; // Adiciona uma margem superior de 10px ao botão de enviar relatório
+        }
+        #overlay {
+            display: none; // Inicialmente esconde o overlay
+            position: fixed; // Define a posição fixa do overlay
+            left: 0; // Define a posição à esquerda do overlay
+            top: 0; // Define a posição no topo do overlay
+            width: 100%; // Define a largura do overlay para 100% da tela
+            height: 100%; // Define a altura do overlay para 100% da tela
+            background-color: rgba(0, 0, 0, 0.5); // Define a cor de fundo do overlay com transparência
+            z-index: 999; // Define a ordem de empilhamento do overlay
+        }
+        #alertDialog, #confirmDialog {
+            display: none; // Inicialmente esconde os diálogos de alerta e confirmação
+            position: fixed; // Define a posição fixa dos diálogos
+            left: 50%; // Centraliza horizontalmente os diálogos
+            top: 50%; // Centraliza verticalmente os diálogos
+            transform: translate(-50%, -50%); // Ajusta a posição para centralizar os diálogos
+            background-color: white; // Define a cor de fundo dos diálogos como branco
+            padding: 20px; // Adiciona um padding de 20px aos diálogos
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); // Adiciona uma sombra aos diálogos
+            z-index: 1000; // Define a ordem de empilhamento dos diálogos
+        }
+        #alertDialog button, #confirmDialog button {
+            margin-top: 10px; // Adiciona uma margem superior de 10px aos botões dos diálogos
+        }
+        #loading {
+        display: none;
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+      }
+      /* Define estilo para o indicador de carregamento, centralizando-o e aplicando sombra */
+      #loading p {
+        font-size: 18px;
+        color: #333;
+      }
+      /* Define estilo para o texto dentro do indicador de carregamento */
+
+    </style>
+    <script>
+
+function addEmail(department) {
+    const emailInput = document.getElementById('email'); // Obtém o elemento de input de email
+    const email = emailInput.value.trim(); // Obtém o valor do input e remove espaços em branco
+    if (email) {
+        google.script.run.withSuccessHandler((exists) => { // Verifica se o email já existe
+            if (exists) {
+                showAlert('Email already exists in the ' + department + ' list.'); // Mostra alerta se o email já existe
+            } else {
+
+               showLoading();  // Exibe a mensagem de carregamento
+
+                google.script.run.withSuccessHandler(() => { // Adiciona o email se não existir
+
+                    hideLoading(); // Esconde a mensagem de carregamento
+
+                    emailInput.value = ''; // Limpa o input de email
+                    showAlert('Email added successfully!'); // Mostra alerta de sucesso
+                    updateEmailList(department); // Atualiza a lista de emails
+                }).addEmail(department, email); // Chama a função para adicionar o email
+            }
+        }).checkEmailExists(department, email); // Chama a função para verificar se o email existe
+    } else {
+        showAlert('Please enter a valid email address.'); // Mostra alerta se o email for inválido
+    }
+}
+
+function confirmDeleteEmail(department, email) {
+    document.getElementById('confirmMessage').innerText = `Are you sure you want to delete the email ${email}?`; // Define a mensagem de confirmação
+    document.getElementById('overlay').style.display = 'block'; // Mostra o overlay
+    document.getElementById('confirmDialog').style.display = 'block'; // Mostra o diálogo de confirmação
+    document.getElementById('confirmDeleteButton').onclick = function() {
+        deleteEmail(department, email);  // Chama a função para deletar o email
+    };
+}
+
+function deleteEmail(department, email) {
+    const adminPassword = document.getElementById('confirmAdminPassword').value;  // Obtém o valor do input de senha do administrador
+    if (!adminPassword) {
+        showAlert('Admin password is required to delete an email.');  // Mostra alerta se a senha do administrador não for fornecida
+        return;
+    }
+showLoading();  // Exibe a mensagem de carregamento
+
+    google.script.run.withSuccessHandler(() => { // Remove o email se a senha do administrador for fornecida
+
+        hideLoading(); // Esconde a mensagem de carregamento
+
+        showAlert('Email removed successfully!'); // Mostra alerta de sucesso
+        updateEmailList(department); // Atualiza a lista de emails
+    }).removeEmail(department, email, adminPassword);  // Chama a função para remover o email
+
+    closeConfirm();  // Fecha o diálogo de confirmação
+}
+
+function updateEmailList(department) { 
+    google.script.run.withSuccessHandler((emails) => { // Obtém a lista de emails atualizada
+        const emailTable = document.getElementById(department + '-email-list'); // Obtém o elemento da tabela de emails
+        emailTable.innerHTML = ''; // Limpa o conteúdo da tabela de emails
+        const headerRow = `
+            <tr>
+                <th>Email</th>
+                <th>Action</th>
+            </tr>
+        `;
+        emailTable.innerHTML = headerRow; // Adiciona a linha de cabeçalho à tabela de email
+        emails.forEach(email => { // Itera sobre a lista de emails
+            const row = document.createElement('tr');  // Cria uma nova linha para cada email
+            const emailCell = document.createElement('td'); // Cria uma célula para o email
+            emailCell.innerText = email[1]; // Define o texto da célula como o email
+            const actionCell = document.createElement('td');  // Cria uma célula para a ação
+            const removeButton = document.createElement('button'); // Cria um botão de remover
+            removeButton.innerText = 'Remove';  // Define o texto do botão de remover
+            removeButton.classList.add('remove-button'); // Adiciona a classe 'remove-button' ao botão
+            removeButton.onclick = () => confirmDeleteEmail(department, email[1]);  // Define a ação ao clicar no botão de remover
+            actionCell.appendChild(removeButton); // Adiciona o botão de remover à célula de ação
+            row.appendChild(emailCell); // Adiciona a célula de email à linha
+            row.appendChild(actionCell);  // Adiciona a célula de ação à linha
+            emailTable.appendChild(row); // Adiciona a linha à tabela de emails
+        });
+    }).getEmails(department); // Chama a função para obter a lista de emails
+}
+
+function sendReport(department) {
+
+  showLoading();  // Exibe a mensagem de carregamento
+
+    google.script.run.withSuccessHandler((message) => { // Envia o relatório de estoque baixo
+
+    hideLoading(); // Esconde a mensagem de carregamento
+
+        showAlert(message); // Mostra a mensagem de sucesso
+    }).sendLowStockReport(department); // Chama a função para enviar o relatório
+}
+
+// Função para enviar o relatório semanal de custo
+function sendWeeklyReport(department) {
+
+  showLoading();  // Exibe a mensagem de carregamento
+
+    google.script.run.withSuccessHandler((message) => {
+
+      hideLoading(); // Esconde a mensagem de carregamento
+
+        showAlert(message); // Mostra a mensagem de sucesso
+    }).sendWeeklyCostReport(department); // Chama a função para enviar o relatório semanal de custo
+}
+
+function showAlert(message) {
+    document.getElementById('alertMessage').innerText = message; // Define a mensagem de alerta
+    document.getElementById('overlay').style.display = 'block'; // Mostra o overlay
+    document.getElementById('alertDialog').style.display = 'block'; // Mostra o diálogo de alerta
+}
+
+function closeAlert() {
+    document.getElementById('overlay').style.display = 'none'; // Esconde o overlay
+    document.getElementById('alertDialog').style.display = 'none'; // Esconde o diálogo de alerta
+}
+
+function closeConfirm() {
+    document.getElementById('overlay').style.display = 'none'; // Esconde o overlay
+    document.getElementById('confirmDialog').style.display = 'none'; // Esconde o diálogo de confirmação
+    document.getElementById('confirmAdminPassword').value = ''; // Limpa o valor do input de senha do administrador
+}
+
+function showLoading() {
+  // Função para exibir a mensagem de carregamento
+  document.getElementById('loading').style.display = 'block';// Exibe o elemento de carregamento
+}
+
+function hideLoading() {
+  // Função para esconder a mensagem de carregamento
+  document.getElementById('loading').style.display = 'none';// Esconde o elemento de carregamento
+}
+
+function backToMain() {
+    google.script.run.openInterface(); // Chama a função para abrir a tela principal
+}
+
+window.onload = function() {
+    updateEmailList('maintenance'); // Atualiza a lista de emails do departamento de manutenção ao carregar a página
+    updateEmailList('toolroom'); // Atualiza a lista de emails do departamento de ferramentaria ao carregar a página
+    // Adicionando os botões de envio de relatório semanal na inicialização
+    const maintenanceReportButton = document.getElementById('sendWeeklyMaintenanceReport'); // Obtém o botão de relatório semanal de manutenção
+    const toolroomReportButton = document.getElementById('sendWeeklyToolroomReport'); // Obtém o botão de relatório semanal de ferramentaria
+
+    maintenanceReportButton.onclick = () => sendWeeklyReport('maintenance'); // Define a ação para enviar o relatório semanal de manutenção
+    toolroomReportButton.onclick = () => sendWeeklyReport('toolroom'); // Define a ação para enviar o relatório semanal de ferramentaria
+};
+
+</script>
+</head>
+<body>
+  <button class="back-button" onclick="backToMain()" style="display: inline-block; margin-left: 10px;">Back to Main</button> <!-- Botão de retorno ao lado do título -->
+  <br> <!-- Adiciona uma quebra de linha -->
+  <h1 style="display: inline-block;">Email Configuration</h1> <!-- Título da configuração de email -->
+  <h2>Enter Email:</h2> <!-- Subtítulo para a entrada de email -->
+
+  <input type="text" id="email" placeholder="Email"> <!-- Campo de entrada para o email -->
+
+  <div class="button-container"> <!-- Contêiner para os botões -->
+    <button onclick="addEmail('maintenance')">Add to Maintenance Email List</button> <!-- Botão para adicionar email à lista de manutenção -->
+    <button onclick="addEmail('toolroom')">Add to Toolroom Email List</button> <!-- Botão para adicionar email à lista de ferramentaria -->
+  </div>
+
+  <h2>Maintenance Emails</h2> <!-- Subtítulo para a lista de emails de manutenção -->
+  <table id="maintenance-email-list" class="email-table"></table> <!-- Tabela para a lista de emails de manutenção -->
+  <div class="button-container"> <!-- Contêiner para os botões de relatório -->
+    <button class="send-report-button" onclick="sendReport('maintenance')">Low Stock Report</button> <!-- Botão para enviar relatório de estoque baixo -->
+    <button class="send-report-button" onclick="sendWeeklyReport('maintenance')">Weekly Cost Report</button> <!-- Botão para enviar relatório semanal de manutenção -->
+  </div>
+
+  <h2>Toolroom Emails</h2> <!-- Subtítulo para a lista de emails de ferramentaria -->
+  <table id="toolroom-email-list" class="email-table"></table> <!-- Tabela para a lista de emails de ferramentaria -->
+  <div class="button-container"> <!-- Contêiner para os botões de relatório -->
+    <button class="send-report-button" onclick="sendReport('toolroom')">Low Stock Report</button> <!-- Botão para enviar relatório de estoque baixo -->
+    <button class="send-report-button" onclick="sendWeeklyReport('toolroom')">Weekly Cost Report</button> <!-- Botão para enviar relatório semanal de ferramentaria -->
+  </div>
+
+  <div id="overlay"></div> <!-- Overlay para diálogos -->
+
+      <div id="loading"> <!-- Div para o indicador de carregamento -->
+      <p>Loading, please wait...</p> <!-- Mensagem de carregamento -->
+    </div>
+
+  <div id="alertDialog"> <!-- Diálogo de alerta -->
+    <p id="alertMessage"></p> <!-- Mensagem de alerta -->
+    <button onclick="closeAlert();">OK</button> <!-- Botão para fechar o alerta -->
+  </div>
+  <div id="confirmDialog"> <!-- Diálogo de confirmação -->
+    <p id="confirmMessage"></p> <!-- Mensagem de confirmação -->
+    <input type="password" id="confirmAdminPassword" placeholder="Admin Password"> <!-- Campo de entrada para a senha do administrador -->
+    <div class="button-container"> <!-- Contêiner para os botões de confirmação -->
+      <button id="confirmDeleteButton">Confirm</button> <!-- Botão para confirmar a exclusão -->
+      <button onclick="closeConfirm()">Cancel</button> <!-- Botão para cancelar a exclusão -->
+    </div>
+  </div>
+</body> <!-- Fim do corpo do documento -->
+</html> <!-- Fim do documento HTML -->
+
+
