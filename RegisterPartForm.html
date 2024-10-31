@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      h1 {
+        color: #4CAF50;
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+      }
+      label {
+        margin-top: 10px;
+        font-weight: bold;
+      }
+      input, select, button {
+        margin-top: 5px;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+      button {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      .back-button {
+            padding: 8px 16px;
+            font-size: 14px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px; /* Espaçamento à esquerda do botão */
+            vertical-align: middle; /* Alinha o botão verticalmente com o título */
+        }
+      #dialog, #alertDialog, #confirmDialog {
+        display: none;
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+      }
+      #dialog button, #alertDialog button, #confirmDialog button {
+        margin: 10px;
+      }
+      #overlay {
+        display: none;
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+      }
+
+      #loading {
+        display: none;
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+      }
+      #loading p {
+        font-size: 18px;
+        color: #333;
+      }
+    </style>
+    <script>
+      
+      function registerPart() {
+        var form = document.getElementById('form');
+        var registerButton = document.querySelector('button[type="button"]');
+        registerButton.disabled = true; // Desativa o botão
+
+        var critical = form.criticalYes.checked ? 'Yes' : 'No';
+        var dept = form.dept.value;
+        var machine = form.machine.value;
+        var supplier = form.supplier.value;
+        var manufacturer = form.manufacturer.value;
+        var description = form.description.value;
+        var mfrPartNo = form.mfrPartNo.value;
+        var sprPartNo = form.sprPartNo.value;
+        var location = form.location.value;
+        var idealStock = form.idealStock.value;
+        var minStock = form.minStock.value;
+        var unitCost = form.unitCost.value;
+        var initialBalance = form.initialBalance.value;
+
+        // Field validation
+        if (!dept || !machine || !supplier || !manufacturer || !description || !mfrPartNo || !sprPartNo || !location || !idealStock || !minStock || !unitCost || !initialBalance) {
+          showAlert('Please fill in all required fields.');
+          registerButton.disabled = false; // Reativa o botão se houver erro de validação
+          return;
+        }
+
+        showLoading(); // Show loading message
+
+        google.script.run
+          .withSuccessHandler(function() {
+            hideLoading(); // Hide loading message
+            // Show confirmation dialog
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('confirmDialog').style.display = 'block';
+            registerButton.disabled = false; // Reativa o botão após a conclusão
+          })
+          .withFailureHandler(function(error) {
+            hideLoading();
+            showAlert('Error occurred: ' + error.message);
+            registerButton.disabled = false; // Reativa o botão em caso de falha
+          })
+          .registerNewPart(critical, dept, machine, supplier, manufacturer, description, mfrPartNo, sprPartNo, location, idealStock, unitCost, initialBalance, minStock);
+      }
+
+      function loadMachines(department) {
+        google.script.run.withSuccessHandler(function(machines) {
+          var machineSelect = document.getElementById('machine');
+          machineSelect.innerHTML = '<option value="">Select</option>'; // Add default option
+          machines.forEach(function(machine) {
+            var option = document.createElement('option');
+            option.value = machine;
+            option.text = machine;
+            machineSelect.add(option);
+          });
+        }).getMachinesByDepartment(department);
+      }
+
+      function loadDepartments() {
+        google.script.run.withSuccessHandler(function(departments) {
+          var deptSelect = document.getElementById('dept');
+          deptSelect.innerHTML = '<option value="">Select</option>'; // Add default option
+          departments.forEach(function(dept) {
+            var option = document.createElement('option');
+            option.value = dept;
+            option.text = dept;
+            deptSelect.add(option);
+          });
+        }).getDepartments();
+      }
+
+      function showAlert(message) {
+        document.getElementById('alertMessage').innerText = message;
+        document.getElementById('overlay').style.display = 'block';
+        document.getElementById('alertDialog').style.display = 'block';
+      }
+
+      function closeAlert() {
+        document.getElementById('overlay').style.display = 'none';
+        document.getElementById('alertDialog').style.display = 'none';
+      }
+
+      function closeConfirm() {
+        document.getElementById('overlay').style.display = 'none';
+        document.getElementById('confirmDialog').style.display = 'none';
+      }
+
+      function handleConfirmResponse(response) {
+        if (response === 'no') {
+          google.script.host.close();
+        } else {
+          closeConfirm();
+          document.getElementById('form').reset();
+        }
+      }
+      
+      function showLoading() {
+        document.getElementById('loading').style.display = 'block';
+      }
+
+      function hideLoading() {
+        document.getElementById('loading').style.display = 'none';
+      }
+
+      function toggleCritical(checkbox) {
+        if (checkbox.id === 'criticalYes' && checkbox.checked) {
+          document.getElementById('criticalNo').checked = false;
+        } else if (checkbox.id === 'criticalNo' && checkbox.checked) {
+          document.getElementById('criticalYes').checked = false;
+        }
+      }
+
+      function backToMain() {
+         google.script.run.openInterface(); // Chama a função para abrir a tela principal
+      }
+
+      // Add event for Enter key
+      document.addEventListener('DOMContentLoaded', function() {
+        var form = document.getElementById('form');
+        form.addEventListener('keypress', function(event) {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            registerPart();
+          }
+        });
+        loadDepartments(); // Load departments when the form is loaded
+        document.getElementById('dept').addEventListener('change', function() {
+          loadMachines(this.value); // Load machines based on selected department
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <button class="back-button" onclick="backToMain()" style="display: inline-block; margin-left: 10px;">Back to Main</button> <!-- Botão de retorno ao lado do título -->
+    <h1>Register New Part</h1>
+    <form id="form">
+
+      <label for="critical">Critical:</label>
+      <div>
+        <input type="checkbox" id="criticalYes" name="criticalYes" onclick="toggleCritical(this)">
+        <label for="criticalYes">Yes</label>
+        <input type="checkbox" id="criticalNo" name="criticalNo" onclick="toggleCritical(this)">
+        <label for="criticalNo">No</label>
+      </div>
+
+      <label for="dept">Dept:</label>
+      <select id="dept" name="dept" required></select>
+
+      <label for="machine">Machine:</label>
+      <select id="machine" name="machine" required></select>
+
+      <label for="supplier">Supplier:</label>
+      <input type="text" id="supplier" name="supplier" required>
+
+      <label for="manufacturer">Manufacturer:</label>
+      <input type="text" id="manufacturer" name="manufacturer" required>
+
+      <label for="description">Description:</label>
+      <input type="text" id="description" name="description" required>
+
+      <label for="mfrPartNo">MFR Part No.:</label>
+      <input type="text" id="mfrPartNo" name="mfrPartNo" required>
+
+      <label for="sprPartNo">SPR Part No.:</label>
+      <input type="text" id="sprPartNo" name="sprPartNo" required>
+
+      <label for="location">Location:</label>
+      <input type="text" id="location" name="location" required>
+
+      <label for="idealStock">Ideal Stock:</label>
+      <input type="number" id="idealStock" name="idealStock" required>
+
+      <label for="minStock">Minimum Stock:</label>
+      <input type="number" id="minStock" name="minStock" required>
+
+      <label for="unitCost">Unit Cost:</label>
+      <input type="number" id="unitCost" name="unitCost" required>
+
+      <label for="initialBalance">Initial Balance:</label>
+      <input type="number" id="initialBalance" name="initialBalance" required>
+
+      <button type="button" onclick="registerPart()">Register</button>
+    </form>
+
+    <div id="loading">
+      <p>Loading, please wait...</p>
+    </div>
+
+    <div id="overlay"></div>
+
+    <div id="alertDialog">
+      <p id="alertMessage"></p>
+      <button onclick="closeAlert()">OK</button>
+    </div>
+
+    <div id="confirmDialog">
+      <p>Do you want to register another part?</p>
+      <button onclick="handleConfirmResponse('yes')">Yes</button>
+      <button onclick="handleConfirmResponse('no')">No</button>
+    </div>
+  </body>
+</html>
