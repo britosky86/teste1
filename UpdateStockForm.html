@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+  <!-- Declaração do tipo de documento como HTML5 -->
+  <head>
+    <!-- Cabeçalho do documento HTML -->
+    <base target="_top">
+    <!-- Define o ponto de referência para todos os links relativos no documento, abrindo-os no topo do frame -->
+    <style>
+      /* Início da seção de estilos CSS */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      /* Define a fonte padrão e a margem do corpo do documento */
+      h1 {
+        color: #4CAF50;
+      }
+      /* Define a cor do texto dos elementos h1 */
+      form {
+        display: flex;
+        flex-direction: column;
+      }
+      /* Define o formulário para usar layout flexível e organizar os elementos em coluna */
+      label {
+        margin-top: 10px;
+        font-weight: bold;
+      }
+      /* Adiciona margem superior e define o texto dos rótulos como negrito */
+      input, select, button {
+        margin-top: 5px;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+      /* Define estilo comum para inputs, selects e botões */
+      button {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+      /* Define estilo específico para botões */
+      button:hover {
+        background-color: #45a049;
+      }
+      /* Define o estilo do botão quando o mouse está sobre ele */
+      .back-button {
+        padding: 8px 16px;
+        font-size: 14px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-left: 10px; /* Espaçamento à esquerda do botão */
+        vertical-align: middle; /* Alinha o botão verticalmente com o título */
+      }
+      /* Define estilo específico para o botão de voltar */
+      #departmentField, #machineField, #usageField {
+        display: none;
+        flex-direction: column;
+      }
+      /* Inicialmente esconde os campos de departamento e máquina e organiza seus elementos em coluna */
+      #dialog, #alertDialog, #confirmDialog {
+        display: none;
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+      }
+      /* Define estilo para diálogos modais, centralizando-os e aplicando sombra */
+      #dialog button, #alertDialog button, #confirmDialog button {
+        margin: 10px;
+      }
+      /* Adiciona margem aos botões dentro dos diálogos */
+      #overlay {
+        display: none;
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+      }
+      /* Define estilo para o overlay que cobre a tela quando um diálogo está ativo */
+      #loading {
+        display: none;
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+      }
+      /* Define estilo para o indicador de carregamento, centralizando-o e aplicando sombra */
+      #loading p {
+        font-size: 18px;
+        color: #333;
+      }
+      /* Define estilo para o texto dentro do indicador de carregamento */
+    </style>
+    <!-- Fim da seção de estilos CSS -->
+    <script>
+    <!-- Início da seção de scripts JavaScript -->
+
+function loadUsers() {
+  // Função para carregar os usuários
+  google.script.run.withSuccessHandler(function(users) {// Chama a função getUsers no servidor e define um manipulador de sucesso
+    var nameSelect = document.getElementById('name');// Obtém o elemento select com o id 'name'
+    nameSelect.innerHTML = '<option value="">Select</option>'; // Adiciona uma opção padrão ao select
+    users.forEach(function(user) {// Itera sobre a lista de usuários recebida do servidor
+      var option = document.createElement('option');// Cria um novo elemento option
+      option.value = user;// Define o valor da opção como o nome do usuário
+      option.text = user;// Define o texto da opção como o nome do usuário
+      nameSelect.add(option); // Adiciona a opção ao select
+    });
+  }).getUsers();// Chama a função getUsers no servidor
+}
+
+function loadMachines(department) {
+  // Função para carregar as máquinas com base no departamento
+  google.script.run.withSuccessHandler(function(machines) {// Chama a função getMachinesByDepartment no servidor e define um manipulador de sucesso
+    var machineSelect = document.getElementById('machine');// Obtém o elemento select com o id 'machine'
+    machineSelect.innerHTML = '<option value="">Select</option>'; // Adiciona uma opção padrão ao select
+    machines.forEach(function(machine) {// Itera sobre a lista de máquinas recebida do servidor
+      var option = document.createElement('option');// Cria um novo elemento option
+      option.value = machine; // Define o valor da opção como o nome da máquina
+      option.text = machine;// Define o texto da opção como o nome da máquina
+      machineSelect.add(option);// Adiciona a opção ao select
+    });
+  }).getMachinesByDepartment(department);// Chama a função getMachinesByDepartment no servidor com o departamento selecionado
+}
+
+function loadDepartments() {
+  // Função para carregar os departamentos
+  google.script.run.withSuccessHandler(function(departments) {// Chama a função getDepartments no servidor e define um manipulador de sucesso
+    var deptSelect = document.getElementById('dept'); // Obtém o elemento select com o id 'dept'
+    deptSelect.innerHTML = '<option value="">Select</option>'; // Adiciona uma opção padrão ao select
+    departments.forEach(function(dept) {// Itera sobre a lista de departamentos recebida do servidor
+      var option = document.createElement('option');// Cria um novo elemento option
+      option.value = dept;// Define o valor da opção como o nome do departamento
+      option.text = dept;// Define o texto da opção como o nome do departamento
+      deptSelect.add(option);// Adiciona a opção ao select
+    });
+  }).getDepartments();// Chama a função getDepartments no servidor
+}
+
+function loadUsage() {
+  // Função para carregar as opções de uso
+  google.script.run.withSuccessHandler(function(usageOptions) {// Chama a função getUsageOptions no servidor e define um manipulador de sucesso
+    var usageSelect = document.getElementById('usage'); // Obtém o elemento select com o id 'usage'
+    usageSelect.innerHTML = '<option value="">Select</option>'; // Adiciona uma opção padrão ao select
+    usageOptions.forEach(function(option) {// Itera sobre a lista de opções de uso recebida do servidor
+      var optionElement = document.createElement('option');// Cria um novo elemento option
+      optionElement.value = option;// Define o valor da opção como a opção de uso
+      optionElement.text = option;// Define o texto da opção como a opção de uso
+      usageSelect.add(optionElement);// Adiciona a opção ao select
+    });
+  }).getUsageOptions();// Chama a função getUsageOptions no servidor
+}
+
+function toggleFields() {
+  // Função para alternar a visibilidade dos campos com base na ação selecionada
+  var action = document.getElementById('action').value;// Obtém o valor da ação selecionada
+  var departmentField = document.getElementById('departmentField');// Obtém o elemento com o id 'departmentField'
+  var machineField = document.getElementById('machineField');// Obtém o elemento com o id 'machineField'
+  var usageField = document.getElementById('usageField');// Obtém o elemento com o id 'usageField'
+  if (action === 'output') {
+
+    // Se a ação for 'output'
+    departmentField.style.display = 'flex'; // Exibe o campo de departamento
+    machineField.style.display = 'flex'; // Exibe o campo de máquina
+    usageField.style.display = 'flex'; // Exibe o campo de usage
+    loadDepartments(); // Carrega os departamentos quando 'output' é selecionado
+
+  } else {
+    // Se a ação não for 'output'
+    departmentField.style.display = 'none';// Esconde o campo de departamento
+    machineField.style.display = 'none'; // Esconde o campo de máquina
+    usageField.style.display = 'none'; // Esconde o campo de usage
+  }
+}
+
+function toggleIdentifierType(checkbox) {
+  // Função para alternar o tipo de identificador com base no checkbox selecionado
+  if (checkbox.id === 'identifierCode' && checkbox.checked) {// Se o checkbox com id 'identifierCode' estiver selecionado
+    document.getElementById('identifierLocation').checked = false;// Desmarca o checkbox com id 'identifierLocation'
+  } else if (checkbox.id === 'identifierLocation' && checkbox.checked) {  // Se o checkbox com id 'identifierLocation' estiver selecionado
+    document.getElementById('identifierCode').checked = false; // Desmarca o checkbox com id 'identifierCode'
+  }
+}
+
+function updateStock() {
+  // Função para atualizar o estoque
+  var form = document.getElementById('form');// Obtém o formulário com o id 'form'
+  var submitButton = document.querySelector('button[type="button"]'); // Obtém o botão de submit
+  submitButton.disabled = true;  // Desativa o botão
+
+  var action = form.action.value;// Obtém o valor da ação do formulário
+  var identifier = form.identifier.value; // Obtém o valor do identificador do formulário
+  var identifierType = form.identifierType.value; // Obtém o valor do tipo de identificador do formulário
+  var quantity = form.quantity.value;// Obtém o valor da quantidade do formulário
+  var machine = form.machine.value; // Obtém o valor da máquina do formulário
+  var name = form.name.value;// Obtém o valor do nome do formulário
+  var usage = form.usage.value; // Obtém o valor do uso do formulário
+
+// Verifica campos obrigatórios comuns
+if (!action || !identifier || !identifierType || !quantity || !name) {
+  showAlert('Please fill in all required fields.');
+  submitButton.disabled = false;
+  return;
+}
+
+// Verifica campos obrigatórios específicos para 'output'
+if (action === 'output' && (!machine || !form.dept.value || !usage)) {
+  showAlert('Please fill in all required fields for output.');
+  submitButton.disabled = false;
+  return;
+}
+
+
+
+  showLoading();  // Exibe a mensagem de carregamento
+
+  google.script.run.withSuccessHandler(function() {
+    // Chama a função registerData no servidor e define um manipulador de sucesso
+    hideLoading(); // Esconde a mensagem de carregamento
+
+    // Exibe o diálogo de confirmação
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('confirmDialog').style.display = 'block';
+    submitButton.disabled = false; // Reativa o botão após a conclusão
+  }).registerData(action, identifier, identifierType, quantity, machine, name, usage);// Chama a função registerData no servidor com os parâmetros do formulário
+}
+
+function showAlert(message) {
+  // Função para exibir um alerta
+  document.getElementById('alertMessage').innerText = message; // Define a mensagem do alerta
+  document.getElementById('overlay').style.display = 'block';// Exibe o overlay
+  document.getElementById('alertDialog').style.display = 'block';// Exibe o diálogo de alerta
+}
+
+function closeAlert() {
+  // Função para fechar o alerta
+  document.getElementById('overlay').style.display = 'none';// Esconde o overlay
+  document.getElementById('alertDialog').style.display = 'none'; // Esconde o diálogo de alerta
+}
+
+function closeConfirm() {
+  // Função para fechar o diálogo de confirmação
+  document.getElementById('overlay').style.display = 'none'; // Esconde o overlay
+  document.getElementById('confirmDialog').style.display = 'none';// Esconde o diálogo de confirmação
+}
+
+function handleConfirmResponse(response) {
+  // Função para lidar com a resposta do diálogo de confirmação
+  if (response === 'no') {
+    // Se a resposta for 'não'
+    google.script.host.close();// Fecha o host do script
+  } else {
+    // Se a resposta for 'sim'
+    closeConfirm();// Fecha o diálogo de confirmação
+    document.getElementById('form').reset();// Reseta o formulário
+    loadUsers();// Recarrega os usuários após o reset do formulário
+    loadUsage(); // Recarrega as opções de uso após o reset do formulário
+        }
+      }
+
+function showLoading() {
+  // Função para exibir a mensagem de carregamento
+  document.getElementById('loading').style.display = 'block';// Exibe o elemento de carregamento
+}
+
+function hideLoading() {
+  // Função para esconder a mensagem de carregamento
+  document.getElementById('loading').style.display = 'none';// Esconde o elemento de carregamento
+}
+
+function backToMain() {
+  // Função para voltar à tela principal
+  google.script.run.openInterface(); // Chama a função para abrir a tela principal
+}
+
+// Adiciona evento para a tecla Enter
+document.addEventListener('DOMContentLoaded', function() {// Adiciona um evento que será executado quando o conteúdo do documento for carregado
+  var form = document.getElementById('form');// Obtém o formulário com o id 'form'
+  form.addEventListener('keypress', function(event) {// Adiciona um evento de pressionar tecla ao formulário
+    if (event.key === 'Enter') {// Se a tecla pressionada for 'Enter'
+      event.preventDefault();// Previne o comportamento padrão do Enter
+      updateStock();// Chama a função updateStock
+    }
+  });
+  loadUsers(); // Carrega os usuários quando o formulário é carregado
+  loadUsage(); // Carrega as opções de uso quando o formulário é carregado
+  document.getElementById('action').addEventListener('change', toggleFields); 
+  // Adiciona um evento de mudança ao campo de ação para alternar os campos
+  document.getElementById('dept').addEventListener('change', function() {
+    loadMachines(this.value); // Carrega as máquinas com base no departamento selecionado
+  });
+});
+
+
+   </script> <!-- Fim da seção de scripts JavaScript -->
+  </head> <!-- Fim da seção de cabeçalho -->
+  <body> <!-- Início do corpo do documento -->
+    <button class="back-button" onclick="backToMain()" style="display: inline-block; margin-left: 10px;">Back to Main</button> <!-- Botão de retorno ao lado do título, com estilo inline para margem à esquerda -->
+    <h1>Stock Update</h1> <!-- Título principal da página -->
+
+    <form id="form"> <!-- Início do formulário com id 'form' -->
+      <label for="action">Action:</label> <!-- Rótulo para o campo de ação -->
+      <select id="action" name="action" required> <!-- Campo de seleção para a ação, obrigatório -->
+        <option value="">Select</option> <!-- Opção padrão vazia -->
+        <option value="input">Input</option> <!-- Opção para entrada -->
+        <option value="output">Output</option> <!-- Opção para saída -->
+
+      </select>
+      <label for="identifierType">Identifier Type:</label> <!-- Rótulo para o tipo de identificador -->
+      <select id="identifierType" name="identifierType" required> <!-- Campo de seleção para o tipo de identificador, obrigatório -->
+        <option value="">Select</option> <!-- Opção padrão vazia -->
+        <option value="code">Code</option> <!-- Opção para código -->
+        <option value="location">Location</option> <!-- Opção para localização -->
+
+      </select>
+      <label for="identifier">Part Code or Part Location:</label> <!-- Rótulo para o identificador da peça -->
+      <input type="text" id="identifier" name="identifier" required> <!-- Campo de texto para o identificador da peça, obrigatório -->
+      <label for="quantity">Quantity:</label> <!-- Rótulo para a quantidade -->
+      <input type="number" id="quantity" name="quantity" required> <!-- Campo numérico para a quantidade, obrigatório -->
+
+      <div id="departmentField"> <!-- Div para o campo de departamento, inicialmente escondida -->
+        <label for="dept">Department:</label> <!-- Rótulo para o departamento -->
+        <select id="dept" name="dept" required> <!-- Campo de seleção para o departamento, obrigatório -->
+          <option value="">Select</option> <!-- Opção padrão vazia -->
+        </select>
+      </div>
+
+      <div id="machineField"> <!-- Div para o campo de máquina, inicialmente escondida -->
+        <label for="machine">Machine:</label> <!-- Rótulo para a máquina -->
+        <select id="machine" name="machine" required> <!-- Campo de seleção para a máquina, obrigatório -->
+          <option value="">Select</option> <!-- Opção padrão vazia -->
+        </select>
+      </div>
+
+      <div id="usageField"> <!-- Div para o campo de máquina, inicialmente escondida -->
+        <label for="usage">Usage:</label> <!-- Rótulo para a máquina -->
+        <select id="usage" name="usage" required> <!-- Campo de seleção para a máquina, obrigatório -->
+          <option value="">Select</option> <!-- Opção padrão vazia -->
+        </select>
+      </div>
+
+      <label for="name">User Name:</label> <!-- Rótulo para o nome do usuário -->
+      <select id="name" name="name" required> <!-- Campo de seleção para o nome do usuário, obrigatório -->
+        <option value="">Select</option> <!-- Opção padrão vazia -->
+      </select>
+
+
+
+      <button type="button" onclick="updateStock()">Update Stock</button> <!-- Botão para atualizar o estoque, com evento onclick para chamar a função updateStock -->
+    </form>
+
+    <div id="overlay"></div> <!-- Div para o overlay que cobre a tela quando um diálogo está ativo -->
+    <div id="loading"> <!-- Div para o indicador de carregamento -->
+      <p>Loading, please wait...</p> <!-- Mensagem de carregamento -->
+    </div>
+    <div id="dialog"> <!-- Div para o diálogo -->
+      <p id="dialogMessage"></p> <!-- Parágrafo para a mensagem do diálogo -->
+      <button onclick="closeAlert()">Close</button> <!-- Botão para fechar o alerta, com evento onclick para chamar a função closeAlert -->
+    </div>
+    <div id="alertDialog"> <!-- Div para o diálogo de alerta -->
+      <p id="alertMessage"></p> <!-- Parágrafo para a mensagem do alerta -->
+      <button onclick="closeAlert()">Close</button> <!-- Botão para fechar o alerta, com evento onclick para chamar a função closeAlert -->
+    </div>
+    <div id="confirmDialog"> <!-- Div para o diálogo de confirmação -->
+      <p>Do you want to register another update?</p> <!-- Pergunta de confirmação -->
+      <button onclick="handleConfirmResponse('yes')">Yes</button> <!-- Botão para confirmar, com evento onclick para chamar a função handleConfirmResponse com 'yes' -->
+      <button onclick="handleConfirmResponse('no')">No</button> <!-- Botão para negar, com evento onclick para chamar a função handleConfirmResponse com 'no' -->
+    </div>
+  </body> <!-- Fim do corpo do documento -->
+</html> <!-- Fim do documento HTML -->
