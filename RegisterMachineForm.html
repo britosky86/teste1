@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top"> <!-- Define que os links dentro deste documento abrem na mesma janela -->
+    <style>
+      body {
+        font-family: Arial, sans-serif; /* Define a fonte da página */
+        margin: 20px; /* Define a margem da página */
+      }
+      h1 {
+        color: #4CAF50; /* Define a cor do título */
+      }
+      form {
+        display: flex; /* Usando Flexbox para organizar o formulário */
+        flex-direction: column; /* Organiza os itens do formulário em uma coluna */
+      }
+      label {
+        margin-top: 10px; /* Adiciona um espaço acima das etiquetas */
+        font-weight: bold; /* Define o texto das etiquetas como negrito */
+      }
+      input, select, button {
+        margin-top: 5px; /* Adiciona um espaço acima dos campos de entrada e botões */
+        padding: 10px; /* Adiciona preenchimento interno aos campos */
+        font-size: 16px; /* Define o tamanho da fonte nos campos e botões */
+        border: 1px solid #ccc; /* Define a borda dos campos */
+        border-radius: 5px; /* Adiciona bordas arredondadas aos campos */
+      }
+      button {
+        background-color: #4CAF50; /* Define a cor de fundo dos botões */
+        color: white; /* Define a cor do texto nos botões */
+        border: none; /* Remove a borda padrão dos botões */
+        cursor: pointer; /* Altera o cursor ao passar sobre os botões */
+      }
+      button:hover {
+        background-color: #45a049; /* Muda a cor de fundo dos botões ao passar o mouse */
+      }
+              .back-button {
+            padding: 8px 16px;
+            font-size: 14px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px; /* Espaçamento à esquerda do botão */
+            vertical-align: middle; /* Alinha o botão verticalmente com o título */
+        }
+      #alertDialog, #confirmDialog {
+        display: none; /* Inicialmente, os diálogos de alerta e confirmação estão ocultos */
+        position: fixed; /* Define que os diálogos devem ficar fixos na tela */
+        left: 50%; /* Posiciona os diálogos no centro da tela horizontalmente */
+        top: 50%; /* Posiciona os diálogos no centro da tela verticalmente */
+        transform: translate(-50%, -50%); /* Centraliza os diálogos */
+        background-color: white; /* Define a cor de fundo dos diálogos */
+        padding: 20px; /* Adiciona preenchimento interno aos diálogos */
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Adiciona sombra aos diálogos */
+        z-index: 1000; /* Define que os diálogos ficam acima de outros elementos */
+      }
+      #alertDialog button, #confirmDialog button {
+        margin: 10px; /* Adiciona margem aos botões dos diálogos */
+      }
+      #overlay {
+        display: none; /* Inicialmente, a sobreposição está oculta */
+        position: fixed; /* Define que a sobreposição deve ficar fixa na tela */
+        left: 0; /* Posiciona a sobreposição no lado esquerdo da tela */
+        top: 0; /* Posiciona a sobreposição no topo da tela */
+        width: 100%; /* Define a largura da sobreposição para cobrir toda a tela */
+        height: 100%; /* Define a altura da sobreposição para cobrir toda a tela */
+        background-color: rgba(0, 0, 0, 0.5); /* Define uma cor de fundo semitransparente para a sobreposição */
+        z-index: 999; /* Define que a sobreposição fica acima de outros elementos, mas abaixo dos diálogos */
+      }
+      #loading {
+        display: none;
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+      }
+      /* Define estilo para o indicador de carregamento, centralizando-o e aplicando sombra */
+      #loading p {
+        font-size: 18px;
+        color: #333;
+      }
+      /* Define estilo para o texto dentro do indicador de carregamento */
+    </style>
+    <script>
+      // Função para registrar uma nova máquina
+      function registerMachine() {
+        var form = document.getElementById('form'); // Obtém o formulário pelo ID
+        var registerButton = document.querySelector('button[type="button"]'); // Obtém o botão de registro
+        registerButton.disabled = true; // Desativa o botão para evitar múltiplos cliques
+
+        // Obtém os valores dos campos do formulário
+        var machineName = form.machineName.value;
+        var machineType = form.machineType.value;
+        var adminPassword = form.adminPassword.value;
+
+        // Validação dos campos
+        if (!machineName || !machineType || !adminPassword) {
+          showAlert('Please enter a machine name, select a machine type, and enter the admin password.'); // Exibe mensagem de alerta
+          registerButton.disabled = false; // Reativa o botão se houver erro de validação
+          return; // Sai da função
+        }
+
+        showLoading();  // Exibe a mensagem de carregamento
+
+        // Chama a função do Google Apps Script para registrar a máquina
+        google.script.run.withSuccessHandler(function(result) {
+
+          hideLoading(); // Esconde a mensagem de carregamento
+
+          showAlert(result.message); // Exibe a mensagem retornada
+          if (result.success) {
+            showConfirmDialog(); // Pergunta se deseja registrar outra máquina
+          } else {
+            registerButton.disabled = false; // Reativa o botão se houver erro
+          }
+        }).registerMachine(machineName, machineType, adminPassword);
+      }
+
+      // Função para mostrar o diálogo de alerta
+      function showAlert(message) {
+        document.getElementById('alertMessage').innerText = message; // Define a mensagem do alerta
+        document.getElementById('overlay').style.display = 'block'; // Exibe a sobreposição
+        document.getElementById('alertDialog').style.display = 'block'; // Exibe o diálogo de alerta
+      }
+
+      // Função para fechar o diálogo de alerta
+      function closeAlert() {
+        document.getElementById('overlay').style.display = 'none'; // Oculta a sobreposição
+        document.getElementById('alertDialog').style.display = 'none'; // Oculta o diálogo de alerta
+      }
+
+      // Função para mostrar o diálogo de confirmação
+      function showConfirmDialog() {
+        document.getElementById('overlay').style.display = 'block'; // Exibe a sobreposição
+        document.getElementById('confirmDialog').style.display = 'block'; // Exibe o diálogo de confirmação
+      }
+
+      // Função para fechar o diálogo de confirmação
+      function closeConfirm() {
+        document.getElementById('overlay').style.display = 'none'; // Oculta a sobreposição
+        document.getElementById('confirmDialog').style.display = 'none'; // Oculta o diálogo de confirmação
+      }
+
+      // Função para lidar com a resposta do diálogo de confirmação
+      function handleConfirmResponse(response) {
+        if (response === 'no') {
+          google.script.host.close(); // Fecha a janela se a resposta for não
+        } else {
+          closeConfirm(); // Fecha o diálogo de confirmação
+          document.getElementById('form').reset(); // Reseta o formulário
+          document.querySelector('button[type="button"]').disabled = false; // Reativa o botão
+        }
+      }
+
+      function showLoading() {
+  // Função para exibir a mensagem de carregamento
+  document.getElementById('loading').style.display = 'block';// Exibe o elemento de carregamento
+}
+
+function hideLoading() {
+  // Função para esconder a mensagem de carregamento
+  document.getElementById('loading').style.display = 'none';// Esconde o elemento de carregamento
+}
+
+              function backToMain() {
+            google.script.run.openInterface(); // Chama a função para abrir a tela principal
+        }
+
+      // Adiciona evento para a tecla Enter
+      document.addEventListener('DOMContentLoaded', function() {
+        var form = document.getElementById('form'); // Obtém o formulário pelo ID
+        form.addEventListener('keypress', function(event) {
+          if (event.key === 'Enter') { // Verifica se a tecla pressionada é Enter
+            event.preventDefault(); // Previne o comportamento padrão
+            registerMachine(); // Chama a função para registrar a máquina
+          }
+        });
+      });
+    </script>
+  </head>
+  <body>
+    
+     <button class="back-button" onclick="backToMain()" style="display: inline-block; margin-left: 10px;">Back to Main</button> <!-- Botão de retorno ao lado do título -->
+    <h1>Register New Machine</h1> <!-- Título da página -->
+    <form id="form"> <!-- Formulário para registrar nova máquina -->
+      <label for="machineName">Machine Name:</label> <!-- Etiqueta para o campo de nome da máquina -->
+      <input type="text" id="machineName" name="machineName" required> <!-- Campo de entrada para nome da máquina -->
+      <label for="machineType">Machine Type:</label> <!-- Etiqueta para o campo de tipo da máquina -->
+      <select id="machineType" name="machineType" required> <!-- Campo de seleção para tipo da máquina -->
+        <option value="">Select</option> <!-- Opção padrão -->
+        <option value="maintenance">Maintenance</option> <!-- Opção para manutenção -->
+        <option value="toolroom">Toolroom</option> <!-- Opção para ferramentaria -->
+      </select>
+      <label for="adminPassword">Admin Password:</label> <!-- Etiqueta para o campo de senha do administrador -->
+      <input type="password" id="adminPassword" name="adminPassword" required> <!-- Campo de entrada para senha do administrador -->
+      <button type="button" onclick="registerMachine()">Register</button> <!-- Botão para registrar a máquina -->
+    </form>
+
+    <div id="overlay"></div> <!-- Sobreposição para escurecer o fundo -->
+
+        <div id="loading"> <!-- Div para o indicador de carregamento -->
+      <p>Loading, please wait...</p> <!-- Mensagem de carregamento -->
+    </div>
+
+    <div id="alertDialog"> <!-- Diálogo de alerta -->
+      <p id="alertMessage"></p> <!-- Mensagem do alerta -->
+      <button onclick="closeAlert();">OK</button> <!-- Botão para fechar o alerta -->
+    </div>
+
+    <div id="confirmDialog"> <!-- Diálogo de confirmação -->
+      <p>Do you want to register another machine?</p> <!-- Pergunta se deseja registrar outra máquina -->
+      <button onclick="handleConfirmResponse('yes');">Yes</button> <!-- Botão para confirmar o registro de outra máquina -->
+      <button onclick="handleConfirmResponse('no');">No</button> <!-- Botão para não registrar outra máquina -->
+    </div>
+  </body>
+</html>
