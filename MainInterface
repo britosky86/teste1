@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top"> <!-- Define que os links dentro deste documento abram na mesma janela -->
+    <style>
+      body {
+        font-family: Arial, sans-serif; /* Define a fonte da página */
+        margin: 20px; /* Define a margem da página */
+      }
+      h1 {
+        color: #4CAF50; /* Define a cor do título */
+      }
+      .container {
+        display: flex; /* Usando Flexbox para organizar o layout */
+        flex-direction: column; /* Organiza os itens em uma coluna */
+        align-items: center; /* Centraliza os itens horizontalmente */
+      }
+      button {
+        margin-top: 10px; /* Adiciona um espaço acima dos botões */
+        padding: 15px 30px; /* Aumenta o tamanho dos botões */
+        font-size: 16px; /* Define o tamanho da fonte nos botões */
+        border: none; /* Remove a borda padrão dos botões */
+        border-radius: 5px; /* Adiciona bordas arredondadas aos botões */
+        background-color: #4CAF50; /* Define a cor de fundo dos botões */
+        color: white; /* Define a cor do texto nos botões */
+        cursor: pointer; /* Altera o cursor ao passar sobre os botões */
+        width: 250px; /* Define uma largura fixa maior para todos os botões */
+      }
+      button:hover {
+        background-color: #45a049; /* Muda a cor de fundo dos botões ao passar o mouse */
+      }
+    </style>
+    <script>
+      // Função para abrir o formulário correspondente quando um botão é clicado
+      function openForm(formName) {
+        google.script.run.openForm(formName); // Chama a função do Google Apps Script para abrir o formulário
+      }
+    </script>
+  </head>
+  <body>
+    <div class="container"> <!-- Contêiner para centralizar o conteúdo -->
+      <h1>Inventory Control</h1> <!-- Título da página -->
+      <button onclick="openForm('updateStock')">Update Stock</button> <!-- Botão para abrir o formulário de atualização de estoque -->
+      <button onclick="openForm('registerPart')">Register New Part</button> <!-- Botão para abrir o formulário de cadastro de nova peça -->
+      <button onclick="openForm('registerUser')">Register New User</button> <!-- Botão para abrir o formulário de cadastro de novo usuário -->
+      <button onclick="openForm('registerMachine')">Register New Machine</button> <!-- Botão para abrir o formulário de cadastro de nova máquina -->
+      <button onclick="openForm('Reports')">Reports Generator</button> <!-- Botão para abrir o gerador de relatórios -->
+    </div>
+  </body>
+</html>
