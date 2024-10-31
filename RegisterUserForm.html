@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top"> <!-- Define o destino padrão para todos os links e formulários na página -->
+    <style>
+      body {
+        font-family: Arial, sans-serif; /* Define a fonte padrão para o corpo da página */
+        margin: 20px; /* Define uma margem de 20px ao redor do corpo da página */
+      }
+      h1 {
+        color: #4CAF50; /* Define a cor do texto do título */
+      }
+      form {
+        display: flex; /* Define o formulário como um contêiner flexível */
+        flex-direction: column; /* Define a direção dos itens do formulário como coluna */
+      }
+      label {
+        margin-top: 10px; /* Adiciona uma margem superior de 10px às labels */
+        font-weight: bold; /* Define o peso da fonte como negrito */
+      }
+      input, select, button {
+        margin-top: 5px; /* Adiciona uma margem superior de 5px aos inputs, selects e botões */
+        padding: 10px; /* Adiciona um padding de 10px aos inputs, selects e botões */
+        font-size: 16px; /* Define o tamanho da fonte dos inputs, selects e botões */
+        border: 1px solid #ccc; /* Define uma borda de 1px sólida e cinza claro */
+        border-radius: 5px; /* Define bordas arredondadas com raio de 5px */
+      }
+      button {
+        background-color: #4CAF50; /* Define a cor de fundo dos botões */
+        color: white; /* Define a cor do texto dos botões como branco */
+        border: none; /* Remove a borda dos botões */
+        cursor: pointer; /* Define o cursor como ponteiro ao passar sobre os botões */
+      }
+      button:hover {
+        background-color: #45a049; /* Muda a cor de fundo dos botões ao passar o mouse */
+      }
+      .back-button {
+        padding: 8px 16px; /* Adiciona padding específico ao botão de voltar */
+        font-size: 14px; /* Define o tamanho da fonte do botão de voltar */
+        background-color: #4CAF50; /* Define a cor de fundo do botão de voltar */
+        color: white; /* Define a cor do texto do botão de voltar como branco */
+        border: none; /* Remove a borda do botão de voltar */
+        border-radius: 5px; /* Define bordas arredondadas com raio de 5px */
+        cursor: pointer; /* Define o cursor como ponteiro ao passar sobre o botão de voltar */
+        margin-left: 10px; /* Espaçamento à esquerda do botão */
+        vertical-align: middle; /* Alinha o botão verticalmente com o título */
+      }
+      table {
+        width: 100%; /* Define a largura da tabela para 100% do contêiner */
+        margin-top: 20px; /* Adiciona uma margem superior de 20px à tabela */
+        border-collapse: collapse; /* Remove os espaços entre as bordas das células */
+      }
+      th, td {
+        padding: 10px; /* Adiciona um padding de 10px às células */
+        text-align: left; /* Alinha o texto das células à esquerda */
+        border-bottom: 1px solid #ddd; /* Define uma borda inferior de 1px sólida e cinza claro para as células */
+      }
+      #alertDialog, #confirmDialog, #nextActionDialog {
+        display: none; /* Inicialmente esconde os diálogos de alerta, confirmação e próxima ação */
+        position: fixed; /* Define a posição fixa dos diálogos */
+        left: 50%; /* Centraliza horizontalmente os diálogos */
+        top: 50%; /* Centraliza verticalmente os diálogos */
+        transform: translate(-50%, -50%); /* Ajusta a posição para centralizar os diálogos */
+        background-color: white; /* Define a cor de fundo dos diálogos como branco */
+        padding: 20px; /* Adiciona um padding de 20px aos diálogos */
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Adiciona uma sombra aos diálogos */
+        z-index: 1000; /* Define a ordem de empilhamento dos diálogos */
+      }
+      #alertDialog button, #confirmDialog button, #nextActionDialog button {
+        margin: 10px; /* Adiciona uma margem de 10px aos botões dos diálogos */
+      }
+      #overlay {
+        display: none; /* Inicialmente esconde o overlay */
+        position: fixed; /* Define a posição fixa do overlay */
+        left: 0; /* Define a posição à esquerda do overlay */
+        top: 0; /* Define a posição no topo do overlay */
+        width: 100%; /* Define a largura do overlay para 100% da tela */
+        height: 100%; /* Define a altura do overlay para 100% da tela */
+        background-color: rgba(0, 0, 0, 0.5); /* Define a cor de fundo do overlay com transparência */
+        z-index: 999; /* Define a ordem de empilhamento do overlay */
+      }
+
+      /* Estilo da mensagem de carregamento */
+      #loading {
+        display: none; /* Inicialmente esconde a mensagem de carregamento */
+        position: fixed; /* Define a posição fixa da mensagem de carregamento */
+        left: 50%; /* Centraliza horizontalmente a mensagem de carregamento */
+        top: 50%; /* Centraliza verticalmente a mensagem de carregamento */
+        transform: translate(-50%, -50%); /* Ajusta a posição para centralizar a mensagem de carregamento */
+        background-color: white; /* Define a cor de fundo da mensagem de carregamento como branco */
+        padding: 20px; /* Adiciona um padding de 20px à mensagem de carregamento */
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Adiciona uma sombra à mensagem de carregamento */
+        z-index: 1000; /* Define a ordem de empilhamento da mensagem de carregamento */
+      }
+
+      #loading p {
+        font-size: 18px; /* Define o tamanho da fonte do texto da mensagem de carregamento */
+        color: #333; /* Define a cor do texto da mensagem de carregamento */
+      }
+    </style>
+    <script>
+function loadUsers() {
+  google.script.run.withSuccessHandler(function(users) {
+    var userList = document.getElementById('userList');
+    userList.innerHTML = ''; // Limpa a lista existente
+    users.forEach(function(user) {
+      var row = document.createElement('tr'); // Cria uma nova linha na tabela
+      var userNameCell = document.createElement('td'); // Cria uma célula para o nome do usuário
+      userNameCell.textContent = user; // Define o texto da célula como o nome do usuário
+      var deleteButtonCell = document.createElement('td'); // Cria uma célula para o botão de deletar
+      var deleteButton = document.createElement('button'); // Cria o botão de deletar
+      deleteButton.textContent = 'Delete'; // Define o texto do botão de deletar
+      deleteButton.onclick = function() {
+        confirmDeleteUser(user); // Define a ação ao clicar no botão de deletar
+      };
+      deleteButtonCell.appendChild(deleteButton); // Adiciona o botão de deletar à célula
+      row.appendChild(userNameCell); // Adiciona a célula do nome do usuário à linha
+      row.appendChild(deleteButtonCell); // Adiciona a célula do botão de deletar à linha
+      userList.appendChild(row); // Adiciona a linha à tabela de usuários
+    });
+  }).getUsers(); // Chama a função para obter a lista de usuários
+}
+
+function registerUser() {
+  var form = document.getElementById('form');
+  var userName = form.userName.value; // Obtém o valor do campo de nome de usuário
+  var adminPassword = form.adminPassword.value; // Obtém o valor do campo de senha do administrador
+
+  // Validação de campo
+  if (!userName || !adminPassword) {
+    showAlert('Please enter a user name and admin password.'); // Exibe um alerta se os campos estiverem vazios
+    return;
+  }
+
+  showLoading(); // Exibe a mensagem de carregamento
+
+  google.script.run.withSuccessHandler(function(result) {
+    hideLoading(); // Oculta a mensagem de carregamento
+    showAlert(result.message); // Exibe a mensagem de sucesso
+    if (result.success) {
+      form.reset(); // Limpa os campos após o registro
+      loadUsers(); // Recarrega os usuários após o registro
+
+      setTimeout(function() { // Espera um tempo para que o alerta seja visto
+        closeAlert(); // Fecha o alerta
+        showNextActionDialog(); // Pergunta se deseja cadastrar mais um
+      }, 1000); // 1 segundo para exibir a mensagem de sucesso
+    }
+  }).checkAndRegisterUser(userName, adminPassword); // Chama a função para verificar e registrar o usuário
+}
+
+function confirmDeleteUser(userName) {
+  document.getElementById('confirmMessage').innerText = `Are you sure you want to delete the user ${userName}?`; // Define a mensagem de confirmação
+  document.getElementById('overlay').style.display = 'block'; // Mostra o overlay
+  document.getElementById('confirmDialog').style.display = 'block'; // Mostra o diálogo de confirmação
+  document.getElementById('confirmDeleteButton').onclick = function() {
+    deleteUser(userName); // Define a ação ao clicar no botão de confirmar exclusão
+  };
+}
+
+function deleteUser(userName) {
+  var adminPassword = document.getElementById('confirmAdminPassword').value; // Obtém o valor do campo de senha do administrador
+  if (!adminPassword) {
+    showAlert('Admin password is required to delete a user.'); // Exibe um alerta se a senha do administrador não for fornecida
+    return;
+  }
+
+  showLoading(); // Exibe a mensagem de carregamento
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      hideLoading(); // Oculta a mensagem de carregamento em caso de sucesso
+      showAlert(result.message); // Exibe a mensagem de sucesso
+      if (result.success) {
+        loadUsers(); // Recarrega os usuários após exclusão
+      }
+    })
+    .withFailureHandler(function(error) {
+      hideLoading(); // Oculta a mensagem de carregamento em caso de falha
+      showAlert("Error deleting user: " + error.message); // Exibe o erro
+    })
+    .deleteUser(userName, adminPassword); // Chama a função para deletar o usuário
+
+  closeConfirm(); // Fecha o diálogo de confirmação
+}
+
+function showAlert(message) {
+  document.getElementById('alertMessage').innerText = message; // Define a mensagem de alerta
+  document.getElementById('overlay').style.display = 'block'; // Mostra o overlay
+  document.getElementById('alertDialog').style.display = 'block'; // Mostra o diálogo de alerta
+}
+
+function closeAlert() {
+  document.getElementById('overlay').style.display = 'none'; // Esconde o overlay
+  document.getElementById('alertDialog').style.display = 'none'; // Esconde o diálogo de alerta
+}
+
+function closeConfirm() {
+  document.getElementById('overlay').style.display = 'none'; // Esconde o overlay
+  document.getElementById('confirmDialog').style.display = 'none'; // Esconde o diálogo de confirmação
+  document.getElementById('confirmAdminPassword').value = ''; // Limpa o campo de senha
+}
+
+/* Funções para mostrar e esconder o carregamento */
+function showLoading() {
+  var loadingElement = document.getElementById('loading');
+  if (loadingElement) {
+    loadingElement.style.display = 'block'; // Mostra a mensagem de carregamento
+  }
+}
+
+function hideLoading() {
+  var loadingElement = document.getElementById('loading');
+  if (loadingElement) {
+    loadingElement.style.display = 'none'; // Esconde a mensagem de carregamento
+  }
+}
+
+// Diálogo para perguntar se deseja cadastrar mais um usuário
+function showNextActionDialog() {
+  document.getElementById('overlay').style.display = 'block'; // Mostra o overlay
+  document.getElementById('nextActionDialog').style.display = 'block'; // Mostra o diálogo de próxima ação
+}
+
+function handleNextAction(response) {
+  if (response === 'no') {
+    google.script.host.close(); // Fecha a janela
+  } else {
+    closeNextAction(); // Fecha o diálogo e permanece na página
+  }
+}
+
+function closeNextAction() {
+  document.getElementById('overlay').style.display = 'none'; // Esconde o overlay
+  document.getElementById('nextActionDialog').style.display = 'none'; // Esconde o diálogo de próxima ação
+}
+
+function backToMain() {
+  google.script.run.openInterface(); // Chama a função para abrir a tela principal
+}
+
+// Evento para pressionar a tecla Enter
+document.addEventListener('DOMContentLoaded', function() {
+  var form = document.getElementById('form');
+  form.addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      registerUser(); // Chama a função para registrar o usuário ao pressionar Enter
+    }
+  });
+  loadUsers(); // Carrega usuários quando o formulário é carregado
+});
+
+  </script> <!-- Fim da seção de script -->
+  </head> <!-- Fim da seção de cabeçalho -->
+  <body> <!-- Início do corpo do documento -->
+    <button class="back-button" onclick="backToMain()" style="display: inline-block; margin-left: 10px;">Back to Main</button> <!-- Botão de retorno ao lado do título -->
+    <h1>Register New User</h1> <!-- Título para registrar um novo usuário -->
+    <form id="form"> <!-- Formulário para registrar um novo usuário -->
+      <label for="userName">User Name:</label> <!-- Label para o campo de nome de usuário -->
+      <input type="text" id="userName" name="userName" required> <!-- Campo de entrada para o nome de usuário -->
+      <label for="adminPassword">Admin Password:</label> <!-- Label para o campo de senha do administrador -->
+      <input type="password" id="adminPassword" name="adminPassword" autocomplete="off" required> <!-- Campo de entrada para a senha do administrador -->
+      <button type="button" onclick="registerUser()">Register</button> <!-- Botão para registrar o usuário -->
+    </form>
+
+    <h2>Existing Users</h2> <!-- Subtítulo para a lista de usuários existentes -->
+    <table> <!-- Tabela para exibir os usuários existentes -->
+      <thead>
+        <tr>
+          <th>User Name</th> <!-- Cabeçalho da coluna de nome de usuário -->
+          <th>Action</th> <!-- Cabeçalho da coluna de ação -->
+        </tr>
+      </thead>
+      <tbody id="userList"></tbody> <!-- Corpo da tabela onde os usuários serão listados -->
+    </table>
+
+    <div id="overlay"></div> <!-- Overlay para diálogos -->
+
+    <!-- Diálogo de alerta -->
+    <div id="alertDialog">
+      <p id="alertMessage"></p> <!-- Mensagem de alerta -->
+      <button onclick="closeAlert();">OK</button> <!-- Botão para fechar o alerta -->
+    </div>
+
+    <!-- Diálogo de confirmação -->
+    <div id="confirmDialog">
+      <p id="confirmMessage"></p> <!-- Mensagem de confirmação -->
+      <label for="confirmAdminPassword">Admin Password:</label> <!-- Label para o campo de senha do administrador -->
+      <input type="password" id="confirmAdminPassword" autocomplete="off" required> <!-- Campo de entrada para a senha do administrador -->
+      <button id="confirmDeleteButton">Confirm</button> <!-- Botão para confirmar a exclusão -->
+      <button onclick="closeConfirm();">Cancel</button> <!-- Botão para cancelar a exclusão -->
+    </div>
+
+    <!-- Novo diálogo de ação após o registro -->
+    <div id="nextActionDialog">
+      <p>Do you want to register another user?</p> <!-- Pergunta se deseja registrar outro usuário -->
+      <button onclick="handleNextAction('yes');">Yes</button> <!-- Botão para confirmar que deseja registrar outro usuário -->
+      <button onclick="handleNextAction('no');">No</button> <!-- Botão para confirmar que não deseja registrar outro usuário -->
+    </div>
+
+    <!-- Mensagem de carregamento -->
+    <div id="loading">
+      <p>Loading...</p> <!-- Texto da mensagem de carregamento -->
+    </div>
+  </body> <!-- Fim do corpo do documento -->
+</html> <!-- Fim do documento HTML -->
+
